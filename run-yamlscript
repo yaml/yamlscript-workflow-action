@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+set -e -u -o pipefail
+
+main() (
+  if [[ -z $YS_FILE ]]; then
+    YS_FILE=$GITHUB_WORKFLOW
+    YS_FILE=${YS_FILE%.yaml}
+    YS_FILE=${YS_FILE%.yaml}
+    YS_FILE=$YS_FILE.ys
+  fi
+
+  [[ -e $YS_FILE ]] ||
+    die "YAMLScript file '$YS_FILE' does not exist"
+
+  setup "$@"
+
+  ys "$YS_FILE"
+)
+
+setup() (
+  unset VERSION
+  # export VERSION=0.1.58
+
+  if ! [[ -e /usr/local/bin/ys ]]; then
+    curl -sSL https://yamlscript.org/install |
+      BIN=1 PREFIX=/usr/local bash
+  fi
+
+  echo "$GITHUB_DATA_JSON" > .github/github.json
+)
+
+die() {
+  >&2 printf '%s\n' "$@"
+  exit 1
+}
+
+[[ $0 != "${BASH_SOURCE[0]}" ]] || main "$@"
